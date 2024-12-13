@@ -89,7 +89,7 @@ def extract_crypto():
 
                 # Initialize combo box with available layers
                 self.update_combobox()
-                self.select_button.clicked.connect(self.extract_crypto)
+                self.select_button.clicked.connect(self.extract)
 
             def cancel_operation(self):
                 # Close the window on cancel
@@ -114,7 +114,7 @@ def extract_crypto():
 
                 self.comboBox.addItems(self.layer_name_list)
 
-            def extract_crypto(self):
+            def extract(self):
                 # Convert manifest string to dictionary
                 manifest_dict = ast.literal_eval(self.metadata[self.manifest_list[self.comboBox.currentIndex()]])
 
