@@ -1,39 +1,52 @@
 import nuke
 import ast
+from PySide2.QtWidgets import QWidget, QPushButton, QComboBox, QLabel, QVBoxLayout, QHBoxLayout
 
 def extract_channels():
-
-    nodes = nuke.selectedNodes(filter = 'Read')
-
-    if not nodes:
-        nuke.message("Please select a 'Read' node/s")
-        return
-
-    for read in nodes:
+    """
+    Extracts all unique channel layers from selected 'Read' nodes
+    and creates Shuffle nodes for each layer.
+    """
+    try:
+        # Get selected nodes of type 'Read'
+        nodes = nuke.selectedNodes(filter='Read')
         
-        channels_list_all = read.channels()
+        if not nodes:
+            # Show message if no 'Read' nodes are selected
+            nuke.message("Please select a 'Read' node/s")
+            return
 
-        channels_list_each = []
+        for read in nodes:
+            # Get all channel names in the node
+            channels_list_all = read.channels()
+            
+            channels_list_each = []
+            
+            # Extract unique layer names from channels
+            for each in channels_list_all:
+                layer_name = each.split('.')[0]
+                if not layer_name in channels_list_each:
+                    channels_list_each.append(layer_name)
 
-        for each in channels_list_all:
-            layer_name = each.split('.')[0]
-            if not layer_name in channels_list_each:
+            for each in channels_list_each:
+                # Create Shuffle node for each unique layer
+                shuffle = nuke.createNode('Shuffle')
+                shuffle['in'].setValue(each)
+                shuffle.setXpos(read.xpos() + ((channels_list_each.index(each) + 1) * 200))
+                shuffle.setYpos(read.ypos() + 20)
+                shuffle['label'].setValue("<b>[value in]</b>")
+                shuffle['note_font_color'].setValue(int("FFFFFFFF", 16))
                 
-                channels_list_each.append(layer_name)
-
-        for each in channels_list_each:
-            shuffle = nuke.createNode('Shuffle')
-            shuffle['in'].setValue(each)
-            shuffle.setXpos(read.xpos() + ((channels_list_each.index(each) + 1) * 200))
-            shuffle.setYpos(read.ypos() + 20)
-            shuffle['label'].setValue("<b>[value in]</b>")
-            shuffle['note_font_color'].setValue(int("FFFFFFFF", 16))
-
-            if channels_list_each[-1] == each:
-                shuffle['selected'].setValue(False)
-
-            elif channels_list_each[0] == each:
-                shuffle.setInput(0, read)
+                # Deselect the last node in the list
+                if channels_list_each[-1] == each:
+                    shuffle['selected'].setValue(False)
+                
+                # Connect the first Shuffle node to the Read node
+                elif channels_list_each[0] == each:
+                    shuffle.setInput(0, read)
+    except Exception as e:
+        # Display any errors that occur
+        nuke.message(str(e))
 
 def extract_crypto():
     """
@@ -41,34 +54,89 @@ def extract_crypto():
     and creates Cryptomatte nodes for each unique ID found in the manifest.
     """
     try:
-        node = nuke.selectedNode()  # Get the currently selected node
+        class MainWindow(QWidget):
+            def __init__(self):
+                super().__init__()
 
-        metadata = node.metadata()  # Retrieve metadata from the selected node
+                # Layouts for UI elements
+                hbox1 = QHBoxLayout()
+                hbox2 = QHBoxLayout()
+                main_layout = QVBoxLayout()
 
-        keys = metadata.keys()  # Get all metadata keys
+                # UI components
+                self.label = QLabel("Select Layer")
+                self.comboBox = QComboBox()
+                self.comboBox.setMinimumWidth(300)
+                self.select_button = QPushButton("Select")
+                self.cancel_button = QPushButton("Cancel")
 
-        for key in keys:
-            # Find key with Cryptomatte manifest
-            if "cryptomatte" in key and "manifest" in key:
-                # Store the manifest key
-                manifest = key
+                # Cancel button functionality
+                self.cancel_button.clicked.connect(self.cancel_operation)
 
-        # Convert manifest string to dictionary
-        manifest_dict = ast.literal_eval(metadata[manifest])
+                # Add components to layouts
+                hbox1.addWidget(self.label)
+                hbox1.addWidget(self.comboBox)
 
-        # Declaring an empty list to store IDs later
-        id_list = []
+                hbox2.addWidget(self.select_button)
+                hbox2.addWidget(self.cancel_button)
 
-        # Loop through each Item in the manifest
-        for each_item in manifest_dict:
-            id_list.append(each_item)
+                main_layout.addLayout(hbox1)
+                main_layout.addLayout(hbox2)
 
-        # Loop through each unique ID in the list
-        for each_id in id_list:
-            crypto_node = nuke.createNode("Cryptomatte")
-            crypto_node["matteList"].setValue(each_id)
-            crypto_node.setYpos(node.ypos() + ((id_list.index(each_id) + 1) * 200))
+                self.setLayout(main_layout)
+                self.setMinimumWidth(400)
+                self.setMaximumWidth(400)
 
-    # Handle and Display any exceptions that occur         
-    except Exception as e:  
+                # Initialize combo box with available layers
+                self.update_combobox()
+                self.select_button.clicked.connect(self.extract_crypto)
+
+            def cancel_operation(self):
+                # Close the window on cancel
+                window.close()
+
+            def update_combobox(self):
+                # Populate combo box with Cryptomatte layer names
+                self.node = nuke.selectedNode()
+                self.metadata = self.node.metadata()
+                keys = self.metadata.keys()
+
+                self.manifest_list = []
+                self.layer_name_list = []
+
+                for key in keys:
+                    if "cryptomatte" in key and "manifest" in key:
+                        self.manifest_list.append(key)
+
+                for key in keys:
+                    if "cryptomatte" in key and "name" in key:
+                        self.layer_name_list.append(self.metadata[key])
+
+                self.comboBox.addItems(self.layer_name_list)
+
+            def extract_crypto(self):
+                # Convert manifest string to dictionary
+                manifest_dict = ast.literal_eval(self.metadata[self.manifest_list[self.comboBox.currentIndex()]])
+
+                id_list = []  # Store unique IDs
+
+                # Extract IDs from the manifest
+                for each_item in manifest_dict:
+                    id_list.append(each_item)
+
+                # Create Cryptomatte nodes for each unique ID
+                for each_id in id_list:
+                    if each_id != "default":
+                        crypto_node = nuke.createNode("Cryptomatte")
+                        crypto_node["matteList"].setValue(each_id)
+                        crypto_node["cryptoLayerChoice"].setValue(self.comboBox.currentIndex())
+                        crypto_node.setYpos(self.node.ypos() + ((id_list.index(each_id) + 1) * 200))
+
+        global window
+        window = MainWindow()
+        window.setWindowTitle("Crypto Extractor - By Mayukh")
+        window.show()
+
+    except Exception as e:
+        # Display any errors that occur
         nuke.message(str(e))
