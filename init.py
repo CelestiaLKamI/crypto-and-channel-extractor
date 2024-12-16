@@ -2,4 +2,4 @@ print("Loading init.py...")
 
 import nuke
 
-nuke.pluginAddPath(r"Mayukh Scripts\Shot_Builder")
+nuke.pluginAddPath(r"mayukh_scripts")
