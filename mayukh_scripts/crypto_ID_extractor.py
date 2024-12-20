@@ -20,7 +20,7 @@ def extract_crypto():
                 self.label = QLabel("Select Layer")
                 self.comboBox = QComboBox()
                 self.comboBox.setMinimumWidth(300)
-                self.select_button = QPushButton("Select")
+                self.select_button = QPushButton("Extract")
                 self.cancel_button = QPushButton("Cancel")
 
                 # Cancel button functionality
