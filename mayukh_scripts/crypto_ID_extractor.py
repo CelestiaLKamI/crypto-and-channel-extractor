@@ -1,5 +1,4 @@
 import nuke
-import ast
 from PySide2.QtWidgets import QWidget, QPushButton, QComboBox, QLabel, QVBoxLayout, QHBoxLayout
 
 def extract_crypto():
@@ -61,8 +60,6 @@ def extract_crypto():
                 for key in keys:
                     if "cryptomatte" in key and "manifest" in key:
                         self.manifest_list.append(key)
-
-                for key in keys:
                     if "cryptomatte" in key and "name" in key:
                         self.layer_name_list.append(self.metadata[key])
 
@@ -70,7 +67,7 @@ def extract_crypto():
 
             def extract(self):
                 # Convert manifest string to dictionary
-                manifest_dict = ast.literal_eval(self.metadata[self.manifest_list[self.comboBox.currentIndex()]])
+                manifest_dict = eval(self.metadata[self.manifest_list[self.comboBox.currentIndex()]])
 
                 id_list = []  # Store unique IDs
 
