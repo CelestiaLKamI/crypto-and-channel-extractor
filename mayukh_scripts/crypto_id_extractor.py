@@ -6,44 +6,44 @@ def extract_crypto():
     Extracts Cryptomatte data from the metadata of the selected node in Nuke
     and creates Cryptomatte nodes for each unique ID found in the manifest.
     """
-    try:
-        class MainWindow(QWidget):
-            def __init__(self):
-                super().__init__()
+    class MainWindow(QWidget):
+        def __init__(self):
+            super().__init__()
 
-                # Layouts for UI elements
-                hbox1 = QHBoxLayout()
-                hbox2 = QHBoxLayout()
-                main_layout = QVBoxLayout()
+            # Layouts for UI elements
+            hbox1 = QHBoxLayout()
+            hbox2 = QHBoxLayout()
+            main_layout = QVBoxLayout()
 
-                # UI components
-                self.label = QLabel("Select Layer")
-                self.comboBox = QComboBox()
-                self.comboBox.setMinimumWidth(300)
-                self.select_button = QPushButton("Extract")
-                self.cancel_button = QPushButton("Cancel")
+            # UI components
+            self.label = QLabel("Select Layer")
+            self.comboBox = QComboBox()
+            self.comboBox.setMinimumWidth(300)
+            self.select_button = QPushButton("Extract")
+            self.cancel_button = QPushButton("Cancel")
 
-                # Cancel button functionality
-                self.cancel_button.clicked.connect(self.cancel_operation)
+            # Cancel button functionality
+            self.cancel_button.clicked.connect(self.cancel_operation)
 
-                # Add components to layouts
-                hbox1.addWidget(self.label)
-                hbox1.addWidget(self.comboBox)
+            # Add components to layouts
+            hbox1.addWidget(self.label)
+            hbox1.addWidget(self.comboBox)
 
-                hbox2.addWidget(self.select_button)
-                hbox2.addWidget(self.cancel_button)
+            hbox2.addWidget(self.select_button)
+            hbox2.addWidget(self.cancel_button)
 
-                main_layout.addLayout(hbox1)
-                main_layout.addLayout(hbox2)
+            main_layout.addLayout(hbox1)
+            main_layout.addLayout(hbox2)
 
-                self.setLayout(main_layout)
-                self.setMinimumWidth(400)
-                self.setMaximumWidth(400)
+            self.setLayout(main_layout)
+            self.setMinimumWidth(400)
+            self.setMaximumWidth(400)
 
-                # Initialize combo box with available layers
-                self.update_combobox()
-                self.select_button.clicked.connect(self.extract)
+            # Initialize combo box with available layers
+            self.update_combobox()
+            self.select_button.clicked.connect(self.extract)
 
+        try:
             def cancel_operation(self):
                 # Close the window on cancel
                 window.close()
@@ -54,6 +54,18 @@ def extract_crypto():
                 self.metadata = self.node.metadata()
                 keys = self.metadata.keys()
 
+                if not self.node:
+                    nuke.message("Please select read node")
+                    return
+                
+                if not self.metadata:
+                    nuke.message("No Metadata available for Extraction")
+                    return
+                
+                if not keys:
+                    nuke.message("No Keys available for Extraction")
+                    return
+                
                 self.manifest_list = []
                 self.layer_name_list = []
 
@@ -68,6 +80,14 @@ def extract_crypto():
             def extract(self):
                 # Convert manifest string to dictionary
                 manifest_dict = eval(self.metadata[self.manifest_list[self.comboBox.currentIndex()]])
+
+                if not  self.layer_name_list:
+                    nuke.message("No Crypto Layer available for Extraction")
+                    return
+
+                if not manifest_dict:
+                    nuke.message("No Crypto Data available for Extraction")
+                    return
 
                 id_list = []  # Store unique IDs
 
@@ -85,12 +105,11 @@ def extract_crypto():
                         crypto_node["label"].setValue(each_id)
 
                 window.close()
-                
-        global window
-        window = MainWindow()
-        window.setWindowTitle("Crypto Extractor")
-        window.show()
-
-    except Exception as e:
-        # Display any errors that occur
-        nuke.message(str(e))
+        except Exception as e:
+            # Display any errors that occur
+            nuke.message(f"{e}")
+            
+    global window
+    window = MainWindow()
+    window.setWindowTitle("Crypto Extractor")
+    window.show()

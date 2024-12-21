@@ -45,5 +45,3 @@ def extract_channels():
     except Exception as e:
         # Display any errors that occur
         nuke.message(str(e))
-
-
