@@ -5,15 +5,15 @@ def extract_channels():
     Extracts all unique channel layers from selected 'Read' nodes
     and creates Shuffle nodes for each layer.
     """
+    # Get selected nodes of type 'Read'
+    nodes = nuke.selectedNodes(filter='Read')
+    
+    if not nodes:
+        # Show message if no 'Read' nodes are selected
+        nuke.message("Please select a 'Read' node/s")
+        return
+    
     try:
-        # Get selected nodes of type 'Read'
-        nodes = nuke.selectedNodes(filter='Read')
-        
-        if not nodes:
-            # Show message if no 'Read' nodes are selected
-            nuke.message("Please select a 'Read' node/s")
-            return
-
         for read in nodes:
             # Get all channel names in the node
             channels_list_all = read.channels()
@@ -42,6 +42,7 @@ def extract_channels():
                 # Connect the first Shuffle node to the Read node
                 elif channels_list_each[0] == each:
                     shuffle.setInput(0, read)
+                    
     except Exception as e:
         # Display any errors that occur
         nuke.message(str(e))
