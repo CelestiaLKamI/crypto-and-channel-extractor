@@ -98,10 +98,10 @@ def extract_crypto():
             # Create Cryptomatte nodes for each unique ID
             for each_id in id_list:
                 if each_id != "default":
-                    crypto_node = nuke.createNode("Cryptomatte")
+                    crypto_node = nuke.createNode("Cryptomatte") 
+                    crypto_node.setYpos(crypto_node.ypos()+200)
                     crypto_node["matteList"].setValue(each_id)
                     crypto_node["cryptoLayerChoice"].setValue(self.comboBox.currentIndex())
-                    crypto_node.setYpos(self.node.ypos() + ((id_list.index(each_id) + 1) * 200))
                     crypto_node["label"].setValue(each_id)
 
             window.close()
