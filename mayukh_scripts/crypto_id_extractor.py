@@ -43,72 +43,69 @@ def extract_crypto():
             self.update_combobox()
             self.select_button.clicked.connect(self.extract)
 
-        try:
-            def cancel_operation(self):
-                # Close the window on cancel
-                window.close()
+        
+        def cancel_operation(self):
+            # Close the window on cancel
+            window.close()
 
-            def update_combobox(self):
-                # Populate combo box with Cryptomatte layer names
-                self.node = nuke.selectedNode()
-                self.metadata = self.node.metadata()
-                keys = self.metadata.keys()
+        def update_combobox(self):
+            # Populate combo box with Cryptomatte layer names
+            self.node = nuke.selectedNode()
+            self.metadata = self.node.metadata()
+            keys = self.metadata.keys()
 
-                if not self.node:
-                    nuke.message("Please select read node")
-                    return
-                
-                if not self.metadata:
-                    nuke.message("No Metadata available for Extraction")
-                    return
-                
-                if not keys:
-                    nuke.message("No Keys available for Extraction")
-                    return
-                
-                self.manifest_list = []
-                self.layer_name_list = []
-
-                for key in keys:
-                    if "cryptomatte" in key and "manifest" in key:
-                        self.manifest_list.append(key)
-                    if "cryptomatte" in key and "name" in key:
-                        self.layer_name_list.append(self.metadata[key])
-
-                self.comboBox.addItems(self.layer_name_list)
-
-            def extract(self):
-                # Convert manifest string to dictionary
-                manifest_dict = eval(self.metadata[self.manifest_list[self.comboBox.currentIndex()]])
-
-                if not  self.layer_name_list:
-                    nuke.message("No Crypto Layer available for Extraction")
-                    return
-
-                if not manifest_dict:
-                    nuke.message("No Crypto Data available for Extraction")
-                    return
-
-                id_list = []  # Store unique IDs
-
-                # Extract IDs from the manifest
-                for each_item in manifest_dict:
-                    id_list.append(each_item)
-
-                # Create Cryptomatte nodes for each unique ID
-                for each_id in id_list:
-                    if each_id != "default":
-                        crypto_node = nuke.createNode("Cryptomatte")
-                        crypto_node["matteList"].setValue(each_id)
-                        crypto_node["cryptoLayerChoice"].setValue(self.comboBox.currentIndex())
-                        crypto_node.setYpos(self.node.ypos() + ((id_list.index(each_id) + 1) * 200))
-                        crypto_node["label"].setValue(each_id)
-
-                window.close()
-        except Exception as e:
-            # Display any errors that occur
-            nuke.message(f"{e}")
+            if not self.node:
+                nuke.message("Please select read node")
+                return
             
+            if not self.metadata:
+                nuke.message("No Metadata available for Extraction")
+                return
+            
+            if not keys:
+                nuke.message("No Keys available for Extraction")
+                return
+            
+            self.manifest_list = []
+            self.layer_name_list = []
+
+            for key in keys:
+                if "cryptomatte" in key and "manifest" in key:
+                    self.manifest_list.append(key)
+                if "cryptomatte" in key and "name" in key:
+                    self.layer_name_list.append(self.metadata[key])
+
+            self.comboBox.addItems(self.layer_name_list)
+
+        def extract(self):
+            # Convert manifest string to dictionary
+            manifest_dict = eval(self.metadata[self.manifest_list[self.comboBox.currentIndex()]])
+
+            if not  self.layer_name_list:
+                nuke.message("No Crypto Layer available for Extraction")
+                return
+
+            if not manifest_dict:
+                nuke.message("No Crypto Data available for Extraction")
+                return
+
+            id_list = []  # Store unique IDs
+
+            # Extract IDs from the manifest
+            for each_item in manifest_dict:
+                id_list.append(each_item)
+
+            # Create Cryptomatte nodes for each unique ID
+            for each_id in id_list:
+                if each_id != "default":
+                    crypto_node = nuke.createNode("Cryptomatte")
+                    crypto_node["matteList"].setValue(each_id)
+                    crypto_node["cryptoLayerChoice"].setValue(self.comboBox.currentIndex())
+                    crypto_node.setYpos(self.node.ypos() + ((id_list.index(each_id) + 1) * 200))
+                    crypto_node["label"].setValue(each_id)
+
+            window.close()
+          
     global window
     window = MainWindow()
     window.setWindowTitle("Crypto Extractor")
