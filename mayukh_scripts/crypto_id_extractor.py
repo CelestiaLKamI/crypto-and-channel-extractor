@@ -45,10 +45,16 @@ def extract_crypto():
 
         
         def cancel_operation(self):
-            # Close the window on cancel
+            """
+            Close the window on cancel
+            """
             window.close()
 
         def update_combobox(self):
+            """
+            This function updates the options based on the avalible cryptomatte layers from
+            metadata of the read layers
+            """
             # Populate combo box with Cryptomatte layer names
             self.node = nuke.selectedNode()
             self.metadata = self.node.metadata()
@@ -78,6 +84,10 @@ def extract_crypto():
             self.comboBox.addItems(self.layer_name_list)
 
         def extract(self):
+            """
+            This function is to create cryptomatte nodes each containing unique IDs
+            when the user hits the extract button after selecting his choice of cryptomatte layer
+            """
             # Convert manifest string to dictionary
             manifest_dict = eval(self.metadata[self.manifest_list[self.comboBox.currentIndex()]])
 
